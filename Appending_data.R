@@ -185,8 +185,8 @@ game_details_crosstab <-game_details %>%
 #filter(season == "2023/24")
 
 #odi_wc_games <- game_details_crosstab_ODI %>%
- distinct(match_id) %>%
-  mutate(match_id = as.double(match_id))
+# distinct(match_id) %>%
+#  mutate(match_id = as.double(match_id))
 
 #selected_ball_by_ball <- 
  # plyr::join(details, odi_wc_games, by = "match_id", type = "inner", match = "all") 
@@ -254,22 +254,24 @@ selected_ball_by_ball <-
 ##### summary by player and game ########
 
 
-selected_batting_columns <- c("runs_off_bat", "balls_faced", "bowl_wickets", "team_wickets","0","1","2","3","4","5","6","7")
+selected_batting_columns <- c("runs_off_bat", "balls_faced", "bowl_wickets", "team_wickets","0","1","2","3","4","5","6","7","8")
 
 batting_stats <- selected_ball_by_ball %>%
   group_by(match_id, start_date, striker, batting_team, bowling_team, innings) %>%
   filter(striker == players) %>%
+  # need to refine this so that 0-8 are a count (or divisable?) 
   summarise(across(all_of(selected_batting_columns),sum))
    
 write.csv(batting_stats, "C:/Users/Tom/Documents/Data/Cricket/Output/batting_stats.csv", row.names = TRUE )
 
 
-selected_bowling_columns <- c("runs_off_bat", "balls_faced", "extras", "wides", "noballs", "bowl_wickets", "team_wickets")
+selected_bowling_columns <- c("runs_off_bat", "balls_faced", "extras", "wides", "noballs", "bowl_wickets", "team_wickets","0","1","2","3","4","5","6","7","8")
 
 #create a wicket count (plus a non bowler attributed wicket count?)
 bowling_stats <- selected_ball_by_ball %>%
   group_by(match_id, start_date, bowler, batting_team, bowling_team, innings) %>%
   filter(bowler == players) %>%
+  # need to refine this so that 0-8 are a count (or divisable?) 
   summarise(across(all_of(selected_bowling_columns),sum))
 
 write.csv(bowling_stats, "C:/Users/Tom/Documents/Data/Cricket/Output/bowling_stats.csv", row.names = TRUE )
