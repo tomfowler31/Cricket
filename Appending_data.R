@@ -79,9 +79,13 @@ detailsJ <- detailsI %>%
   group_by (match_id,batting_team, innings, striker) %>%
   mutate(cum_runs_off_bat = cumsum(runs_off_bat))
 
+detailsJ_a <- detailsJ %>%
+group_by (match_id,batting_team, innings, bowler) %>%
+ mutate(cum_balls_bowled = cumsum(balls_faced))
+
 ## accounting for non striker being runout 
 
-match_runout <- detailsJ %>%
+match_runout <- detailsJ_a %>%
   filter(striker != player_dismissed)
 
 match_runout <- match_runout %>%
@@ -105,11 +109,11 @@ details <- details %>%
 #### chunk start 
 ##code to create columns of runs scored
 ##duplicate runs_off_bat so pivot_wider doesnt drop it
+
 details <- details %>%
   mutate(runs_off_bat2 = runs_off_bat)
 
 append_integer_column <- function(df, int_column_name) {
-  # Convert integer values to binary
   df <- df %>%
     pivot_wider(names_from = {{int_column_name}}, values_from = runs_off_bat2, values_fill = list(runs_off_bat2 = 0))
   
@@ -253,13 +257,11 @@ selected_ball_by_ball <-
 
 ##### summary by player and game ########
 
-
 selected_batting_columns <- c("runs_off_bat", "balls_faced", "bowl_wickets", "team_wickets","0","1","2","3","4","5","6","7","8")
 
 batting_stats <- selected_ball_by_ball %>%
   group_by(match_id, start_date, striker, batting_team, bowling_team, innings) %>%
   filter(striker == players) %>%
-  # need to refine this so that 0-8 are a count (or divisable?) 
   summarise(across(all_of(selected_batting_columns),sum))
    
 write.csv(batting_stats, "C:/Users/Tom/Documents/Data/Cricket/Output/batting_stats.csv", row.names = TRUE )
@@ -267,11 +269,19 @@ write.csv(batting_stats, "C:/Users/Tom/Documents/Data/Cricket/Output/batting_sta
 
 selected_bowling_columns <- c("runs_off_bat", "balls_faced", "extras", "wides", "noballs", "bowl_wickets", "team_wickets","0","1","2","3","4","5","6","7","8")
 
-#create a wicket count (plus a non bowler attributed wicket count?)
+#create a wicket count 
 bowling_stats <- selected_ball_by_ball %>%
+  #mutate(maidens = 
+  #mutate(wicket_maidens = )
   group_by(match_id, start_date, bowler, batting_team, bowling_team, innings) %>%
   filter(bowler == players) %>%
-  # need to refine this so that 0-8 are a count (or divisable?) 
   summarise(across(all_of(selected_bowling_columns),sum))
 
 write.csv(bowling_stats, "C:/Users/Tom/Documents/Data/Cricket/Output/bowling_stats.csv", row.names = TRUE )
+
+bowling_wicket_details <- selected_ball_by_ball %>%
+  filter(bowler == players) %>%
+  filter(bowl_wickets == 1) %>%
+  select(bowler, match_id, season, innings, batting_team, striker, wicket_type, note, over, ball_in_over, bowler_over, cum_balls_bowled, batting_partnership, running_score)
+
+write.csv(bowling_wicket_details, "C:/Users/Tom/Documents/Data/Cricket/Output/bowling_wicket_details.csv", row.names = TRUE )
