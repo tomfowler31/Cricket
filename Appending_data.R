@@ -183,20 +183,6 @@ game_details <- base::subset(game_details, !detail == "")
 game_details_crosstab <-game_details %>%
   pivot_wider(names_from = "measure", values_from = "detail", values_fn = toString)
 
-#ODI GAMES 2023/24 WORLD CUP
-#game_details_crosstab_ODI <- game_details_crosstab %>%
-#filter(event == "ICC Cricket World Cup") %>%
-#filter(season == "2023/24")
-
-#odi_wc_games <- game_details_crosstab_ODI %>%
-# distinct(match_id) %>%
-#  mutate(match_id = as.double(match_id))
-
-#selected_ball_by_ball <- 
- # plyr::join(details, odi_wc_games, by = "match_id", type = "inner", match = "all") 
-
-#selected_ball_by_ball <- inner_join(details, odi_wc_games, by = "match_id")
-
 
 #export
 write.csv(game_details_crosstab, "C:/Users/Tom/Documents/Data/Cricket/Output/Anderson/info_data.csv", row.names = TRUE )
@@ -272,7 +258,7 @@ selected_bowling_columns <- c("runs_off_bat", "balls_faced", "extras", "wides", 
 #create a wicket count 
 bowling_stats <- selected_ball_by_ball %>%
   group_by(match_id, start_date, bowler, batting_team, bowling_team, innings) %>%
-  #filter(bowler == players) %>%
+  filter(bowler == players) %>%
   summarise(across(all_of(selected_bowling_columns),sum))
 
 bowling_maidens_pre <- selected_ball_by_ball %>%
@@ -289,10 +275,12 @@ bowling_maidens_pre2 <- bowling_maidens_pre %>%
   group_by(match_id, start_date, bowler, batting_team, bowling_team, innings)%>%
   summarise(maidens = sum(maidens_calc), wicket_maidens = sum(wicket_maid_calc))
 
-bowling_stats <- bowling_stats %>%
+#clean up .x and .y in the join
+# clean up references
+bowling_stats2 <- bowling_stats %>%
   left_join(bowling_maidens_pre2, by = c("match_id", "bowler", "innings"))
   
-write.csv(bowling_stats, "C:/Users/Tom/Documents/Data/Cricket/Output/bowling_stats.csv", row.names = TRUE )
+write.csv(bowling_stats2, "C:/Users/Tom/Documents/Data/Cricket/Output/Anderson/bowling_stats.csv", row.names = TRUE )
 
 
 bowling_wicket_details <- selected_ball_by_ball %>%
