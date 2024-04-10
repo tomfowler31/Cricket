@@ -128,7 +128,7 @@ details <- append_integer_column(details, int_column_name = "runs_off_bat2")
 as.data.frame(details)
 
 
-rm(match,data_all,detailsA,detailsB, detailsC, detailsD, detailsE, detailsF, detailsG, detailsH, detailsI, detailsJ, match_runout)
+rm(match,data_all,detailsA,detailsB, detailsC, detailsD, detailsE, detailsF, detailsG, detailsH, detailsI, detailsJ,detailsJ_a, match_runout)
 
 # full match details export
 write.csv(details, "C:/Users/Tom/Documents/Data/Cricket/Output/ball_by_ball.csv", row.names = TRUE )
@@ -271,13 +271,29 @@ selected_bowling_columns <- c("runs_off_bat", "balls_faced", "extras", "wides", 
 
 #create a wicket count 
 bowling_stats <- selected_ball_by_ball %>%
-  #mutate(maidens = 
-  #mutate(wicket_maidens = )
   group_by(match_id, start_date, bowler, batting_team, bowling_team, innings) %>%
-  filter(bowler == players) %>%
+  #filter(bowler == players) %>%
   summarise(across(all_of(selected_bowling_columns),sum))
 
+bowling_maidens_pre <- selected_ball_by_ball %>%
+  #filter(match_id == 1389403) %>%
+  group_by(match_id, start_date, bowler, batting_team, bowling_team, innings, over) %>%
+  mutate(final_ball = max(ball_in_over))%>% 
+  group_by(match_id, start_date, bowler, batting_team, bowling_team, innings, over) %>%
+  summarise(runs_per_over= sum(runs_off_bat), final_ball = max(final_ball), wickets = sum(bowl_wickets))
+    
+bowling_maidens_pre2 <- bowling_maidens_pre %>%
+  
+  mutate(maidens_calc = ifelse(runs_per_over == 0 & final_ball >= 6, 1,0)) %>%
+  mutate(wicket_maid_calc = ifelse(runs_per_over == 0 & final_ball >= 6 & wickets >0, 1,0)) %>%
+  group_by(match_id, start_date, bowler, batting_team, bowling_team, innings)%>%
+  summarise(maidens = sum(maidens_calc), wicket_maidens = sum(wicket_maid_calc))
+
+bowling_stats <- bowling_stats %>%
+  left_join(bowling_maidens_pre2, by = c("match_id", "bowler", "innings"))
+  
 write.csv(bowling_stats, "C:/Users/Tom/Documents/Data/Cricket/Output/bowling_stats.csv", row.names = TRUE )
+
 
 bowling_wicket_details <- selected_ball_by_ball %>%
   filter(bowler == players) %>%
