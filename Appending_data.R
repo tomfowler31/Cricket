@@ -233,6 +233,8 @@ specific_matches <- specific_matches_inc_players %>%
   distinct(match_id) %>%
   mutate(match_id = as.character(match_id))
 
+# matches that Anderson played in
+#write.csv(specific_matches, "C:/Users/Tom/Documents/Data/Cricket/Output/Anderson/specific_matches_played_in.csv", row.names = TRUE )
 
 #filter all games to just bring back their scorecard details
 selected_ball_by_ball <- 
